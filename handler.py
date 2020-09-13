@@ -1,7 +1,9 @@
 import sleekxmpp
 from sleekxmpp.exceptions import IqError, IqTimeout
 from sleekxmpp.xmlstream.stanzabase import ET, ElementBase
-
+import os
+import base64
+import binascii
 
 # basado en: https://gist.github.com/deckerego/be1abbc079b206b793cf/revisions 
 
@@ -13,11 +15,10 @@ class Client(sleekxmpp.ClientXMPP):
 
         self.instance_name = instance_name
         self.username = username
-
-
-
+        self.path = os.getcwd() + "/resources/"
+        self.filename = None
         self.add_event_handler('session_start', self.start)
-        self.add_event_handler('message', self.receive)
+        self.add_event_handler('message', self.wait_msg)
         self.add_event_handler("changed_subscription", self.alertFriend)
         self.register_plugin('xep_0077')
         self.register_plugin('xep_0030') # Service Discovery
@@ -26,7 +27,8 @@ class Client(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0077') # In-band Registration
         self.register_plugin('xep_0045') # Mulit-User Chat (MUC)
         self.register_plugin('xep_0047', {"auto_accept": True})
-        #self.register_plugin('xep_0055') #search
+        
+        self.register_plugin('xep_0096') #envio archivos
         
         if self.connect():
             print("Coonectaaadoooo")
@@ -57,7 +59,7 @@ class Client(sleekxmpp.ClientXMPP):
 
 
     
-    def getAllUsers(self,jid, domain):
+    def get_users(self,jid, domain, username="*"):
         
         users = self.Iq()
         users['type'] = 'set'
@@ -75,10 +77,10 @@ class Client(sleekxmpp.ClientXMPP):
                                         <value>1</value>\
                                     </field>\
                                     <field var='search'>\
-                                        <value>*</value>\
+                                        <value>{0}</value>\
                                     </field>\
                                 </x>\
-                                </query>")
+                                </query>".format(username))
         users.append(itemXML)
         print(users)
         try:
@@ -90,6 +92,7 @@ class Client(sleekxmpp.ClientXMPP):
             print("timeout")
 
     def send_msg(self, recipient, body):
+        self.send_notif(self.username, recipient, "Estoy iniciando chat.")
         self.send_message(recipient,body,None,"chat")
     
 
@@ -109,19 +112,47 @@ class Client(sleekxmpp.ClientXMPP):
             raise Exception("Server not responding")
 
     def wait_msg(self, message):
-        print("called function")
         if message['type'] in ('chat', 'normal'):
             print("XMPP Message: %s" % message)
             from_account = "%s@%s" % (message['from'].user, message['from'].domain)
             print("%s received message from %s" % (self.instance_name, from_account))
+            
+            base64.decodebytes(message["body"])
+            print("its an image!!!")
+            
+                
+            
 
     def msg_group(self, room, body):
         self.send_message(mto=room, mbody=body, mtype='groupchat')
     
-    def join_group(self, room, name):
-        self.plugin['xep_0045'].joinMUC(room, name, wait=True)
+    def join_group(self, room, nickname):
+        self.plugin['xep_0045'].joinMUC(room, nickname, wait=True)
+
+    def send_file(self,receiver, f):
+
+        with open(f, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read())
+            image_file.close()
+            encoded_string = str(encoded_string)
+            self.send_message(receiver,encoded_string)
+
+
+    def send_notif(self, sender, receiver, msg):
+        notif = self.Message()
+        notif['from'] = sender
+        notif['to'] = receiver
+        notif['type'] = 'chat'
+        itemXML = ET.fromstring("<body>{0}</body>".format(msg))
+        itemXML2 = ET.fromstring("<active xmlns='http://jabber.org/protocol/chatstates' />")
+        notif.append(itemXML)
+        notif.append(itemXML2)
+        notif.send()
+
 
 clientxmpp = Client('fran@redes2020.xyz', '123456', 'redes2020.xyz')
 #clientxmpp.send_msg('prueba1@redes2020.xyz', "hola mafer!")
-clientxmpp.getAllServerUsers("fran@redes2020.xyz","redes2020.xyz")
+#clientxmpp.get_users("fran@redes2020.xyz","redes2020.xyz","prueba1")
 #clientxmpp.deleteUser("fran@redes2020.xyz")
+#clientxmpp.get_user_info("fran@redes2020.xyz")
+#clientxmpp.send_notif("prueba1@redes2020.xyz","resources/paiton.jpg", "Estoy iniciando chat.")
