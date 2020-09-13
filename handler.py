@@ -95,7 +95,7 @@ class Client(sleekxmpp.ClientXMPP):
         self.send_notif(self.username, recipient, "Estoy iniciando chat.")
         self.send_message(recipient,body,None,"chat")
     
-
+    #suicidepreventionmonth.
     def commitSuicide(self, username):
         delete = self.Iq()
         delete['type'] = 'set'
@@ -113,12 +113,17 @@ class Client(sleekxmpp.ClientXMPP):
 
     def wait_msg(self, message):
         if message['type'] in ('chat', 'normal'):
-            print("XMPP Message: %s" % message)
-            from_account = "%s@%s" % (message['from'].user, message['from'].domain)
-            print("%s received message from %s" % (self.instance_name, from_account))
+            received = message['body'].encode('utf-8')
+            received = base64.decodebytes(received)
+            if len(received) > 3000:
+                with open("imageToSave.png", "wb") as fh:
+                    fh.write(received)
+            else:
+                print("XMPP Message: %s" % message)
+                from_account = "%s@%s" % (message['from'].user, message['from'].domain)
+                print("%s received message from %s" % (self.instance_name, from_account))
             
-            base64.decodebytes(message["body"])
-            print("its an image!!!")
+            
             
                 
             
@@ -128,14 +133,6 @@ class Client(sleekxmpp.ClientXMPP):
     
     def join_group(self, room, nickname):
         self.plugin['xep_0045'].joinMUC(room, nickname, wait=True)
-
-    def send_file(self,receiver, f):
-
-        with open(f, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read())
-            image_file.close()
-            encoded_string = str(encoded_string)
-            self.send_message(receiver,encoded_string)
 
 
     def send_notif(self, sender, receiver, msg):
@@ -151,7 +148,7 @@ class Client(sleekxmpp.ClientXMPP):
 
 
 clientxmpp = Client('fran@redes2020.xyz', '123456', 'redes2020.xyz')
-#clientxmpp.send_msg('prueba1@redes2020.xyz', "hola mafer!")
+clientxmpp.send_msg('mafprueba@redes2020.xyz', "hola mafer!")
 #clientxmpp.get_users("fran@redes2020.xyz","redes2020.xyz","prueba1")
 #clientxmpp.deleteUser("fran@redes2020.xyz")
 #clientxmpp.get_user_info("fran@redes2020.xyz")
