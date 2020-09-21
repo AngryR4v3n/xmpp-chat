@@ -5,6 +5,7 @@ import os
 import base64
 import binascii
 import xmpp
+import threading
 # basado en: https://gist.github.com/deckerego/be1abbc079b206b793cf/revisions 
 
 
@@ -28,13 +29,16 @@ class Client(sleekxmpp.ClientXMPP):
         jid = "%s/%s" % (username, instance_name) if instance_name else username
         super(Client, self).__init__(jid, password)
 
-        self.instance_name = instance_name
+        self.domain = username.split("@")[1]
         self.username = username
+
+        
         self.path = os.getcwd() + "/resources/"
         self.filename = None
         self.add_event_handler('session_start', self.start)
         self.add_event_handler('message', self.wait_msg)
         self.add_event_handler("changed_subscription", self.alertFriend)
+        self.add_event_handler("changed_status", self.wait_for_presences)
         self.register_plugin('xep_0077')
         self.register_plugin('xep_0030') # Service Discovery
         self.register_plugin('xep_0199') # XMPP Ping
@@ -44,9 +48,11 @@ class Client(sleekxmpp.ClientXMPP):
         self.register_plugin('xep_0047', {"auto_accept": True})
         
         self.register_plugin('xep_0096') #envio archivos
-        
+        self.received = set()
+        self.presences_received = threading.Event()
+        self.contacts = []
         if self.connect():
-            print("Coonectaaadoooo")
+            
             self.process(block=False)
         else:
             raise Exception("Chequeate tu conexion a internet / server")
@@ -58,6 +64,65 @@ class Client(sleekxmpp.ClientXMPP):
     def start(self, event):
         self.send_presence(pshow='chat', pstatus='Disponible')
         print(self.get_roster())
+    
+    #basado en: https://github.com/fritzy/SleekXMPP/blob/develop/examples/roster_browser.py
+    def list_contacts(self):
+        try:
+            self.get_roster()
+        except IqError as err:
+            print('Error: %s' % err.iq['error']['condition'])
+        except IqTimeout:
+            print('Error: Request timed out')
+        self.send_presence()
+
+
+        print('Waiting for presence updates...\n')
+        self.presences_received.wait(5)
+
+        print('Roster for %s' % self.boundjid.bare)
+        groups = self.client_roster.groups()
+        
+        data = []
+        for group in groups:
+            print('\n%s' % group)
+            print('-' * 72)
+            
+            for jid in groups[group]:
+                temp = []
+                
+                self.contacts.append(jid)
+                sub = self.client_roster[jid]['subscription']
+                name = self.client_roster[jid]['name']
+                connections = self.client_roster.presence(jid)
+                show = 'available'
+                status = ''
+                for res, pres in connections.items():
+                    if pres['show']:
+                        show = pres['show']
+                    
+                    if pres['status']:
+                        status = pres['status']
+                
+
+                temp.append(name)
+                temp.append(jid)
+                temp.append(sub)
+                temp.append(status)
+                temp.append(res+show)
+                
+                data.append(temp)
+        return data
+    
+    def wait_for_presences(self, pres):
+        """
+        Track how many roster entries have received presence updates.
+        """
+        self.received.add(pres['from'].bare)
+        if len(self.received) >= len(self.client_roster.keys()):
+            self.presences_received.set()
+        else:
+            self.presences_received.clear()
+    
     
     def alertFriend(self):
         self.get_roster()
@@ -74,14 +139,14 @@ class Client(sleekxmpp.ClientXMPP):
 
 
     
-    def get_users(self,jid, domain, username="*"):
+    def get_users(self, username="*"):
         
         users = self.Iq()
         users['type'] = 'set'
-        users['from'] = jid
+        users['from'] = self.jid
         users['id'] = 'search_result'
         
-        users['to'] = "search."+self.instance_name
+        users['to'] = "search."+self.domain
         
         itemXML = ET.fromstring("<query xmlns='jabber:iq:search'>\
                                  <x xmlns='jabber:x:data' type='submit'>\
@@ -100,7 +165,7 @@ class Client(sleekxmpp.ClientXMPP):
         print(users)
         try:
             resp = users.send()
-            print(resp)
+            
         except IqError as e:
             print(e.iq)
         except IqTimeout:
@@ -137,11 +202,6 @@ class Client(sleekxmpp.ClientXMPP):
                 print("XMPP Message: %s" % message)
                 from_account = "%s@%s" % (message['from'].user, message['from'].domain)
                 print("%s received message from %s" % (self.instance_name, from_account))
-            
-            
-            
-                
-            
 
     def msg_group(self, room, body):
         self.send_message(mto=room, mbody=body, mtype='groupchat')
@@ -170,4 +230,4 @@ class Client(sleekxmpp.ClientXMPP):
 #clientxmpp.send_notif("prueba1@redes2020.xyz","resources/paiton.jpg", "Estoy iniciando chat.")
 
 #newUsr = UserManagement()
-#newUsr.newUser("vasodeaga@redes2020.xyz", "123456")
+#newUsr.newUser("fran@redes2020.xyz", "123456")
