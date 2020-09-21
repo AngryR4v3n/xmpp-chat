@@ -4,9 +4,24 @@ from sleekxmpp.xmlstream.stanzabase import ET, ElementBase
 import os
 import base64
 import binascii
-
+import xmpp
 # basado en: https://gist.github.com/deckerego/be1abbc079b206b793cf/revisions 
 
+
+class UserManagement():
+    def newUser(self, user, pw):
+        jid=xmpp.protocol.JID(user)
+        cli=xmpp.Client(jid.getDomain())
+        cli.connect()
+
+        if xmpp.features.register(cli,
+                          jid.getDomain(),
+                          {'username':jid.getNode(),
+                           'password':pw}):
+            print("Success!\n Se ha creado usuario.")
+        else:
+            print("Error!\n Usuario no pudo ser creado")
+            
 
 class Client(sleekxmpp.ClientXMPP):
     def __init__(self, username, password, instance_name=None):
@@ -35,7 +50,7 @@ class Client(sleekxmpp.ClientXMPP):
             self.process(block=False)
         else:
             raise Exception("Chequeate tu conexion a internet / server")
-
+    
     def kill(self):
         print("Closing XMPP Connection")
         self.disconnect(wait=False)
@@ -147,9 +162,12 @@ class Client(sleekxmpp.ClientXMPP):
         notif.send()
 
 
-clientxmpp = Client('fran@redes2020.xyz', '123456', 'redes2020.xyz')
-clientxmpp.send_msg('mafprueba@redes2020.xyz', "hola mafer!")
+#clientxmpp = Client('fran@redes2020.xyz', '123456', 'redes2020.xyz')
+#clientxmpp.send_msg('mafprueba@redes2020.xyz', "hola mafer!")
 #clientxmpp.get_users("fran@redes2020.xyz","redes2020.xyz","prueba1")
 #clientxmpp.deleteUser("fran@redes2020.xyz")
 #clientxmpp.get_user_info("fran@redes2020.xyz")
 #clientxmpp.send_notif("prueba1@redes2020.xyz","resources/paiton.jpg", "Estoy iniciando chat.")
+
+#newUsr = UserManagement()
+#newUsr.newUser("vasodeaga@redes2020.xyz", "123456")
