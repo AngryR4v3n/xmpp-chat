@@ -50,4 +50,4 @@ cli = SlidePrompt(
 
 print('\n')
 result = cli.launch()
-print(result[0][1])
+print(result[5])

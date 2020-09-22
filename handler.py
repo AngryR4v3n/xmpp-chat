@@ -63,7 +63,7 @@ class Client(sleekxmpp.ClientXMPP):
 
     def start(self, event):
         self.send_presence(pshow='chat', pstatus='Disponible')
-        print(self.get_roster())
+        #print(self.get_roster())
     
     #basado en: https://github.com/fritzy/SleekXMPP/blob/develop/examples/roster_browser.py
     def list_contacts(self):
@@ -192,22 +192,35 @@ class Client(sleekxmpp.ClientXMPP):
             raise Exception("Server not responding")
 
     def wait_msg(self, message):
-        if message['type'] in ('chat', 'normal'):
+        if len(message['body']) > 3000:
+            print("You have received and image go check it out")
             received = message['body'].encode('utf-8')
             received = base64.decodebytes(received)
-            if len(received) > 3000:
-                with open("imageToSave.png", "wb") as fh:
-                    fh.write(received)
-            else:
-                print("XMPP Message: %s" % message)
+            with open("imageToSave.png", "wb") as fh:
+                fh.write(received)
+        elif message['type'] == 'groupchat':
+            print("Received group chat from {0}: {1} ".format(message['from'],message['body']) )
+        elif str(message).find('http://jabber.org/protocol/chatstates') > -1:
+            if str(message).find('active') > -1:
                 from_account = "%s@%s" % (message['from'].user, message['from'].domain)
-                print("%s received message from %s" % (self.instance_name, from_account))
+                print('Notificacion Active', from_account, message['body'])
+            elif str(message).find('composing') > -1:
+                from_account = "%s@%s" % (message['from'].user, message['from'].domain)
+                print(from_account, 'Is Writing a Message')
+            elif str(message).find('inactive') > -1:
+                from_account = "%s@%s" % (message['from'].user, message['from'].domain)
+                print(from_account, 'Is Inactive')
+        else:
+            
+            #print("XMPP Message: %s" % message['body'])
+            from_account = "%s@%s" % (message['from'].user, message['from'].domain)
+            print(from_account, message['body'])
 
     def msg_group(self, room, body):
         self.send_message(mto=room, mbody=body, mtype='groupchat')
     
     def join_group(self, room, nickname):
-        self.plugin['xep_0045'].joinMUC(room, nickname, wait=True)
+        self.plugin['xep_0045'].joinMUC(room, nickname)
 
 
     def send_notif(self, sender, receiver, msg):
@@ -223,7 +236,8 @@ class Client(sleekxmpp.ClientXMPP):
 
 
 #clientxmpp = Client('fran@redes2020.xyz', '123456', 'redes2020.xyz')
-#clientxmpp.send_msg('mafprueba@redes2020.xyz', "hola mafer!")
+#clientxmpp.send_notif("fran@redes2020.xyz", "mafprueba@redes2020.xyz","hola")
+#clientxmpp.join_group("aristogatos@conference.redes2020.xyz","fran")
 #clientxmpp.get_users("fran@redes2020.xyz","redes2020.xyz","prueba1")
 #clientxmpp.deleteUser("fran@redes2020.xyz")
 #clientxmpp.get_user_info("fran@redes2020.xyz")
