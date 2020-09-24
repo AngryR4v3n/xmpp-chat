@@ -41,7 +41,7 @@ Aditionally the program uses the following libraries:
 ```shell
 $ git clone https://github.com/molinajimenez/xmpp-chat.git
 ```
-#### ⚠️ WARNING ⚠️: Please make sure you run the following commands after installing all the packages. If this step is not done, the program ** won't work **.
+#### ⚠️ WARNING ⚠️: Please make sure you run the following commands after installing all the packages. If this step is not done, the program **won't work**.
 
 ```shell
 $ pip uninstall pyasn1 peas-modules sleekxmpp
@@ -50,8 +50,7 @@ $ pip uninstall pyasn1 peas-modules sleekxmpp
 $ pip install pyasn1==0.3.6 pyasn1-modules==0.1.5 sleekxmpp==1.3.3
 ```
 
-#### ** Notice ** : While this client was being made, the SleekXMPP package was officially decrecated. 
-                    The migration to Slixmpp was not done due to development constraints. 
+#### **Notice** : While this client was being made, the SleekXMPP package was officially decrecated. The migration to Slixmpp was not done due to development constraints. 
 
 ## Contributors & References
  This program was made by Francisco Molina and some examples taken from the following links.
