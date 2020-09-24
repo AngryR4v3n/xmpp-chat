@@ -3,8 +3,8 @@ Computer Networking: Project 2 - XMPP Client
 **FRAN-CHAT** This CLI Python scriptt is a basic XMPP client it is used to communicate between users to connected to a XMPP server. 
 
 #### Screenshots
-![Login view](https://imgur.com/a/5QI8ZeR)
-![Menu](https://imgur.com/Bpdqk1z)
+![Login view](screenshots/Screenshot_20200924_135632.png)
+![Menu](screenshots/menu.png)
 
 ## Dependencies & Requirements.
  This program was written in Python 3.8.5, 64-bit for best experience it is recommended to run in this Python version. 
