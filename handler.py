@@ -6,6 +6,7 @@ import base64
 import binascii
 import xmpp
 import threading
+import time
 # basado en: https://gist.github.com/deckerego/be1abbc079b206b793cf/revisions 
 
 
@@ -39,6 +40,10 @@ class Client(sleekxmpp.ClientXMPP):
         self.add_event_handler('message', self.wait_msg)
         self.add_event_handler("changed_subscription", self.alertFriend)
         self.add_event_handler("changed_status", self.wait_for_presences)
+        
+        self.add_event_handler("got_online", self.onlineTrigger)
+        self.add_event_handler("got_offline", self.offlineTrigger)
+        
         self.register_plugin('xep_0077')
         self.register_plugin('xep_0030') # Service Discovery
         self.register_plugin('xep_0199') # XMPP Ping
@@ -63,7 +68,12 @@ class Client(sleekxmpp.ClientXMPP):
 
     def start(self, event):
         self.send_presence(pshow='chat', pstatus='Disponible')
+        self.send_notif(self.username, recipient, "Estoy iniciando chat.")
         #print(self.get_roster())
+
+    def send_pres(self, txt):
+        self.send_presence(pshow="dnd", pstatus=txt)
+        
     
     #basado en: https://github.com/fritzy/SleekXMPP/blob/develop/examples/roster_browser.py
     def list_contacts(self):
@@ -73,7 +83,7 @@ class Client(sleekxmpp.ClientXMPP):
             print('Error: %s' % err.iq['error']['condition'])
         except IqTimeout:
             print('Error: Request timed out')
-        self.send_presence()
+        
 
 
         print('Waiting for presence updates...\n')
@@ -92,7 +102,6 @@ class Client(sleekxmpp.ClientXMPP):
                 
                 self.contacts.append(jid)
                 sub = self.client_roster[jid]['subscription']
-                name = self.client_roster[jid]['name']
                 connections = self.client_roster.presence(jid)
                 show = 'available'
                 status = ''
@@ -100,15 +109,10 @@ class Client(sleekxmpp.ClientXMPP):
                     if pres['show']:
                         show = pres['show']
                     
-                    if pres['status']:
-                        status = pres['status']
                 
-
-                temp.append(name)
                 temp.append(jid)
                 temp.append(sub)
-                temp.append(status)
-                temp.append(res+show)
+                temp.append(show)
                 
                 data.append(temp)
         return data
@@ -122,7 +126,12 @@ class Client(sleekxmpp.ClientXMPP):
             self.presences_received.set()
         else:
             self.presences_received.clear()
-    
+
+        print(pres)
+    def onlineTrigger(self, presence):
+        print(presence)
+    def offlineTrigger(self, presence):
+        print(presence)
     
     def alertFriend(self):
         self.get_roster()
@@ -165,14 +174,28 @@ class Client(sleekxmpp.ClientXMPP):
         print(users)
         try:
             resp = users.send()
-            
+            data = []
+            temp = []
+            cont = 0
+            for i in resp.findall(".//{jabber:x:data}value"):
+                cont += 1
+                txt = ''
+                if i.text != None:
+                    txt = i.text
+
+                temp.append(txt)
+                if cont == 4:
+                    cont = 0
+                    data.append(temp)
+                    temp = []
+            return data
         except IqError as e:
             print(e.iq)
         except IqTimeout:
             print("timeout")
-
+        
     def send_msg(self, recipient, body):
-        self.send_notif(self.username, recipient, "Estoy iniciando chat.")
+        #time.sleep(4)
         self.send_message(recipient,body,None,"chat")
     
     #suicidepreventionmonth.
@@ -218,10 +241,16 @@ class Client(sleekxmpp.ClientXMPP):
 
     def msg_group(self, room, body):
         self.send_message(mto=room, mbody=body, mtype='groupchat')
+        print("sent group")
     
     def join_group(self, room, nickname):
         self.plugin['xep_0045'].joinMUC(room, nickname)
 
+    def create_group(self, room, nickname):
+        stat = "Que onda"
+        self.plugin['xep_0045'].joinMUC(room,nickname, pstatus=stat, pfrom=self.jid, wait=True)
+        self.plugin['xep_0045'].setAffiliation(room, self.jid, affiliation="owner")
+        self.plugin['xep_0045'].configureRoom(room, ifrom=self.jid)
 
     def send_notif(self, sender, receiver, msg):
         notif = self.Message()
