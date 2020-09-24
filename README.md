@@ -37,6 +37,8 @@ Aditionally the program uses the following libraries:
 * time
 * binascii
 * os
+
+
 ## Installation
 ```shell
 $ git clone https://github.com/molinajimenez/xmpp-chat.git
@@ -49,7 +51,11 @@ $ pip uninstall pyasn1 peas-modules sleekxmpp
 ```shell
 $ pip install pyasn1==0.3.6 pyasn1-modules==0.1.5 sleekxmpp==1.3.3
 ```
-
+If you happen to experience import or dependency problems, please run the following command:
+```shell
+$ pip install -r requirements.txt
+````
+Special thanks to my friend [Hayri Yigit](https://github.com/hayriyigit) for suggesting the usage of such command.
 #### **Notice** : While this client was being made, the SleekXMPP package was officially decrecated. The migration to Slixmpp was not done due to development constraints. 
 
 ## Contributors & References
