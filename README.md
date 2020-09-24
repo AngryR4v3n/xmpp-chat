@@ -1,6 +1,6 @@
 Computer Networking: Project 2 - XMPP Client
 ======
-**FRAN-CHAT** This CLI Python scriptt is a basic XMPP client it is used to communicate between users to connected to a XMPP server. 
+**FRAN-CHAT** This CLI Python script is a basic XMPP client it is used to communicate between users to connected to a XMPP server. 
 
 #### Screenshots
 ![Login view](screenshots/Screenshot_20200924_135632.png)
@@ -57,7 +57,28 @@ $ pip install -r requirements.txt
 ````
 Special thanks to my friend [Hayri Yigit](https://github.com/hayriyigit) for suggesting the usage of such command.
 #### **Notice** : While this client was being made, the SleekXMPP package was officially decrecated. The migration to Slixmpp was not done due to development constraints. 
+## Usage
+This program requires an account to start the connection with the XMPP server, there's an account already created for you.
+* JID: fran@redes2020.xyz
+* PW: 123456
 
+After this, the program will display a simple menu, the program is in spanish as this is my native language. The following implemented functionalities are:
+1. Register a new user
+2. My contacts
+3. Add contact
+4. Search users in server
+5. Send a message
+6. New group
+7. Join a group
+8. Send a file ⚠ - it only supports sending .jpg and .png files
+9. Update my status
+10. Send message to a group 
+11. Deactivate my account
+12. Exit program
+
+## Implemented Status
+At the moment implementing status lets you update to: offline status and active status, composing is not implemented to be set.
+The client however can show which users are active, composing or offline.
 ## Contributors & References
  This program was made by Francisco Molina and some examples taken from the following links.
 * [Francisco Molina ](https://github.com/molinajimenez)
