@@ -8,6 +8,7 @@ from colorama import Fore,Style
 from tabulate import tabulate
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+import os
 #user = input("Ingrese usuario: ")
 #pw = getpass.getpass("Ingrese pw: ")
 string = """
@@ -66,6 +67,8 @@ def obtener_usuario():
     print(tabulate(res, headers=['E-mail','JID', 'Username', 'Name' ]))
 
 def enviar_mensaje():
+    obtener_contactos()
+    print(f'{Fore.RED}¿A quien deseas enviar mensaje?{Style.RESET_ALL}')
     cli = SlidePrompt([
         Input("Ingrese JID de contacto a chatear.", default="mafprueba@redes2020.xyz",
         word_color= colors.foreground["yellow"]),
@@ -74,6 +77,7 @@ def enviar_mensaje():
         word_color= colors.foreground["yellow"])
     ])
     result = cli.launch()
+    
     client.send_msg(result[0][1], result[1][1])
 
 def crear_grupo():
@@ -106,8 +110,9 @@ def enviar_imagen():
     filename = askopenfilename(filetypes=[("PNG","*.png"),("JPG","*.jpg")])
     if filename:
         with open(filename,"rb") as file_img:
-            my_str = base64.b64encode(file_img.read())
-        client.send_msg(result[0][1])
+            my_str = base64.b64encode(file_img.read()).decode("utf-8")
+        
+        client.send_msg(result[0][1], my_str)
     else:
         print("ERROR")
         return 0
@@ -129,8 +134,13 @@ def enviar_grupo():
         Input("Ingrese mensaje a enviar.", default="Hola! Participantes del mejor grupo del mundo",
         word_color= colors.foreground["yellow"])
     ])
+
+
     result = cli.launch()
     client.msg_group(result[0][1], result[1][1])
+
+def desactivar():
+    client.commitSuicide()
 
         
 # Create the root menu
@@ -145,7 +155,9 @@ menu = """
     7. 🫂 Unirse a grupo
     8. 📂 Enviar archivo
     9. 📃 Actualizar estado
-    10. 📨📨 Enviar mensaje a grupo 
+    10. 📨📨 Enviar mensaje a grupo
+    11. 💀 Desactivar cuenta
+    12. ❌ Salir de programa. 
 
 """
 while x:
@@ -161,9 +173,9 @@ while x:
     elif reply == "2":
         obtener_contactos()
     elif reply == "3":
-        agregar_contacto(jid)
+        agregar_contacto()
     elif reply == "4":
-        get_users()
+        obtener_usuario()
     elif reply == "5":
         enviar_mensaje()
     elif reply == "6":
@@ -176,5 +188,15 @@ while x:
         actualizar_estado()
     elif reply == "10":
         enviar_grupo()
+    elif reply == "11":
+        desactivar()
+    elif reply == "12":
+        x = False
+        os._exit(0)
+
+exit(0)
+
+
+        
 
    

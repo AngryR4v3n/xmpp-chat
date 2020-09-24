@@ -7,9 +7,8 @@ import binascii
 import xmpp
 import threading
 import time
+
 # basado en: https://gist.github.com/deckerego/be1abbc079b206b793cf/revisions 
-
-
 class UserManagement():
     def newUser(self, user, pw):
         jid=xmpp.protocol.JID(user)
@@ -28,6 +27,7 @@ class UserManagement():
 class Client(sleekxmpp.ClientXMPP):
     def __init__(self, username, password, instance_name=None):
         jid = "%s/%s" % (username, instance_name) if instance_name else username
+        
         super(Client, self).__init__(jid, password)
 
         self.domain = username.split("@")[1]
@@ -69,7 +69,8 @@ class Client(sleekxmpp.ClientXMPP):
     def start(self, event):
         self.send_presence(pshow='chat', pstatus='Disponible')
         self.send_notif(self.username, recipient, "Estoy iniciando chat.")
-        #print(self.get_roster())
+        
+        
 
     def send_pres(self, txt):
         self.send_presence(pshow="dnd", pstatus=txt)
@@ -86,10 +87,10 @@ class Client(sleekxmpp.ClientXMPP):
         
 
 
-        print('Waiting for presence updates...\n')
+       #print('Recolectando presencias...\n')
         self.presences_received.wait(5)
 
-        print('Roster for %s' % self.boundjid.bare)
+        #print('Roster for %s' % self.boundjid.bare)
         groups = self.client_roster.groups()
         
         data = []
@@ -127,11 +128,15 @@ class Client(sleekxmpp.ClientXMPP):
         else:
             self.presences_received.clear()
 
-        print(pres)
+        #print(pres)
+        
     def onlineTrigger(self, presence):
-        print(presence)
+        #print(self.client_roster.keys())
+        if presence['status']:   
+            print('\n'+'Recibiendo estados: '+presence['status'])
+            
     def offlineTrigger(self, presence):
-        print(presence)
+        return presence
     
     def alertFriend(self):
         self.get_roster()
@@ -140,7 +145,7 @@ class Client(sleekxmpp.ClientXMPP):
     def addRoster(self, jid):
         try:
             self.send_presence_subscription(pto=jid)
-            print("User added to roster")
+            print("Se agrego usuario al rooster")
         except IqError:
             raise Exception("Unable to add user to rooster")
         except IqTimeout:
@@ -171,7 +176,7 @@ class Client(sleekxmpp.ClientXMPP):
                                 </x>\
                                 </query>".format(username))
         users.append(itemXML)
-        print(users)
+        #print(users)
         try:
             resp = users.send()
             data = []
@@ -199,16 +204,15 @@ class Client(sleekxmpp.ClientXMPP):
         self.send_message(recipient,body,None,"chat")
     
     #suicidepreventionmonth.
-    def commitSuicide(self, username):
+    def commitSuicide(self):
         delete = self.Iq()
         delete['type'] = 'set'
-        delete['from'] = username
+        delete['from'] = self.boundjid.bare
         itemXML = ET.fromstring("<query xmlns='jabber:iq:register'><remove/></query>")
         delete.append(itemXML)
-        print(delete)
         try:
             delete.send()
-            #print("Account deleted succesfuly")
+            print("Account deleted succesfuly")
         except IqError as e:
             raise Exception("Unable to delete username", e)
         except IqTimeout:
@@ -216,26 +220,26 @@ class Client(sleekxmpp.ClientXMPP):
 
     def wait_msg(self, message):
         if len(message['body']) > 3000:
-            print("You have received and image go check it out")
+            print("Recibiste una imagen, revisala en la carpeta /resources")
             received = message['body'].encode('utf-8')
             received = base64.decodebytes(received)
-            with open("imageToSave.png", "wb") as fh:
+            with open("./resources/imageToSave.png", "wb") as fh:
                 fh.write(received)
         elif message['type'] == 'groupchat':
             print("Received group chat from {0}: {1} ".format(message['from'],message['body']) )
         elif str(message).find('http://jabber.org/protocol/chatstates') > -1:
             if str(message).find('active') > -1:
                 from_account = "%s@%s" % (message['from'].user, message['from'].domain)
-                print('Notificacion Active', from_account, message['body'])
+                print('Usuario se conecto: ', from_account, message['body'])
             elif str(message).find('composing') > -1:
                 from_account = "%s@%s" % (message['from'].user, message['from'].domain)
-                print(from_account, 'Is Writing a Message')
+                print(from_account, 'Esta escribiendo un mensaje')
             elif str(message).find('inactive') > -1:
                 from_account = "%s@%s" % (message['from'].user, message['from'].domain)
-                print(from_account, 'Is Inactive')
+                print(from_account, ' esta inactivo')
         else:
             
-            #print("XMPP Message: %s" % message['body'])
+            print("Recibiste un nuevo mensaje: %s" % message['body'])
             from_account = "%s@%s" % (message['from'].user, message['from'].domain)
             print(from_account, message['body'])
 
@@ -263,14 +267,3 @@ class Client(sleekxmpp.ClientXMPP):
         notif.append(itemXML2)
         notif.send()
 
-
-#clientxmpp = Client('fran@redes2020.xyz', '123456', 'redes2020.xyz')
-#clientxmpp.send_notif("fran@redes2020.xyz", "mafprueba@redes2020.xyz","hola")
-#clientxmpp.join_group("aristogatos@conference.redes2020.xyz","fran")
-#clientxmpp.get_users("fran@redes2020.xyz","redes2020.xyz","prueba1")
-#clientxmpp.deleteUser("fran@redes2020.xyz")
-#clientxmpp.get_user_info("fran@redes2020.xyz")
-#clientxmpp.send_notif("prueba1@redes2020.xyz","resources/paiton.jpg", "Estoy iniciando chat.")
-
-#newUsr = UserManagement()
-#newUsr.newUser("fran@redes2020.xyz", "123456")
