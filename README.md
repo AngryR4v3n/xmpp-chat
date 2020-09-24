@@ -2,7 +2,7 @@ Computer Networking: Project 2 - XMPP Client
 ======
 **FRAN-CHAT** This CLI Python script is a basic XMPP client it is used to communicate between users to connected to a XMPP server. 
 
-#### Screenshots 🖼
+## Screenshots 🖼
 ![Login view](screenshots/Screenshot_20200924_135632.png)
 ![Menu](screenshots/menu.png)
 
@@ -57,7 +57,7 @@ $ pip install -r requirements.txt
 ````
 Special thanks to my friend [Hayri Yigit](https://github.com/hayriyigit) for suggesting the usage of such command. 🎉
 #### **Notice** : While this client was being made, the SleekXMPP package was officially decrecated. The migration to Slixmpp was not done due to development constraints. 
-## Usage
+## Usage ⚙
 This program requires an account to start the connection with the XMPP server, there's an account already created for you.
 * JID: fran@redes2020.xyz
 * PW: 123456
