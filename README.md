@@ -76,9 +76,11 @@ After this, the program will display a simple menu, the program is in spanish as
 11. Deactivate my account
 12. Exit program
 
-## Implemented Status 🙂
+## Implemented Behaviour 🙂
 At the moment implementing status lets you update to: offline status and active status, composing is not implemented to be set.
 The client however can show which users are active, composing or offline.
+
+Also, if you receive a friend request, it automatically adds the user as a friend.
 ## Contributors & References 👤
  This program was made by Francisco Molina and some examples taken from the following links.
 * [Francisco Molina ](https://github.com/molinajimenez)
